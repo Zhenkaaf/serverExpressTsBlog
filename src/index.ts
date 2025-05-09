@@ -36,7 +36,7 @@ Middleware: app.use позволяет регистрировать обрабо
 });
 
 app.get("/", (req, res) => {
-    res.send("API is running...");
+    res.send("API of AUTOVIBE is running...");
 });
 
 //http://localhost:5000
