@@ -1,6 +1,12 @@
 import { Router } from "express";
 import { checkAuth } from "../utils/checkAuth";
-import { createPost } from "../controllers/posts";
+import {
+    createPost,
+    delPostById,
+    getAllPosts,
+    getMyPosts,
+    getPostById,
+} from "../controllers/posts";
 import { upload, handleFileUploadError } from "../utils/multerConfig";
 const router = Router();
 
@@ -12,6 +18,15 @@ router.post(
     handleFileUploadError,
     createPost
 );
+/*  upload.single("image")---Ищет поле с именем "image" в FormData.
+Проверяет файл (тип, размер).
+Сохраняет файл в req.file.
+Остальные поля (title, text) будут лежать в req.body. */
+
+router.get("/my-posts", checkAuth, getMyPosts);
+router.get("/posts", getAllPosts);
+router.get("/:id", checkAuth, getPostById);
+router.delete("/:id", checkAuth, delPostById);
 
 export default router;
 

@@ -23,22 +23,26 @@ export const checkAuth = (
             const decodedJWT = jwt.verify(token, JWT_SECRET) as DecodedToken;
             if (!decodedJWT.id) {
                 console.log("Invalid token");
-                res.status(403).json({ message: "Invalid token" });
+                res.status(403).json({
+                    message: "Invalid token, please log in again.",
+                });
                 return;
             }
+            //checkAuth добавляет userId в объект запроса (req)
             req.userId = decodedJWT.id;
             next();
         } catch (err: any) {
             console.log("Invalid or expired token. Access denied");
             res.status(403).json({
-                message: "Invalid or expired token. Access denied",
+                message:
+                    "Invalid or expired token. Access denied. Please log in again.",
             });
             return;
         }
     } else {
         console.log("You don't have access, token is missing");
         res.status(403).json({
-            message: "You don't have access, token is missing",
+            message: "Token is missing. Please log in to access this resource.",
         });
         return;
     }

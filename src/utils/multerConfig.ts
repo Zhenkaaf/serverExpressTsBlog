@@ -23,7 +23,6 @@ const fileFilter: multer.Options["fileFilter"] = (req, file, cb) => {
     }
 };
 
-// Экспорт multer с настройками
 const upload = multer({
     storage,
     fileFilter,
