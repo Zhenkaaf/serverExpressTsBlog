@@ -25,7 +25,9 @@ app.use(express.json());
 
 // Мидлвар для логирования каждого запроса
 app.use((req, res, next) => {
-    console.log(req.body);
+    console.log("Request BODY:", req.body);
+    console.log("Request URL:", req.originalUrl);
+    console.log("Request Method:", req.method);
     /* app.use — это метод в Express.js (фреймворке для Node.js), который используется для добавления промежуточных обработчиков (middleware) в цепочку обработки запросов. 
 Middleware — это функции, которые могут модифицировать запрос (request), ответ (response) или завершить обработку запроса и отправить ответ.
 Добавление обработчиков маршрутов: app.use позволяет вам добавлять функции, которые будут выполняться на каждый запрос или для определённых маршрутов.

@@ -82,3 +82,73 @@ export const createPost = async (req: RequestCustom, res: Response) => {
         res.status(500).json({ message: "Failed to create post" });
     }
 };
+
+export const getPostById = async (req: RequestCustom, res: Response) => {
+    try {
+        const post = await Post.findByIdAndUpdate(
+            req.params.id, // Поиск по ID поста
+            { $inc: { views: 1 } }, // Увеличиваем количество просмотров на 1
+            { new: true } // Возвращаем обновленный пост
+        );
+        console.log(post);
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+        res.status(200).json(post);
+    } catch (err) {
+        console.error("Error getting post by ID:", err);
+        res.status(500).json({
+            message: "Failed to get the post. Please try again later.",
+        });
+    }
+};
+
+export const getMyPosts = async (req: RequestCustom, res: Response) => {
+    try {
+        const posts = await Post.find({ authorId: req.userId }).sort({
+            createdAt: -1,
+        });
+        console.log("User posts:", posts);
+        res.status(200).json(posts);
+    } catch (err) {
+        console.error("Error getting posts", err);
+        res.status(500).json({
+            message: "Failed to get posts. Please try again later.",
+        });
+    }
+};
+
+export const getAllPosts = async (req: Request, res: Response) => {
+    try {
+        const posts = await Post.find().sort({ createdAt: -1 });
+        const popularPosts = await Post.find().sort({ views: -1 }).limit(4);
+        res.status(200).json({ posts, popularPosts });
+    } catch (err) {
+        console.error("Error getting all posts", err);
+        res.status(500).json({
+            message: "Failed to get all posts. Please try again later.",
+        });
+    }
+};
+
+export const delPostById = async (req: RequestCustom, res: Response) => {
+    console.log("del");
+    try {
+        const post = await Post.findById(req.params.id);
+
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+        await Post.findByIdAndDelete(req.params.id);
+        await User.findByIdAndUpdate(req.userId, {
+            $pull: { posts: req.params.id },
+        });
+
+        res.status(200).json({ message: "Post was successfully deleted" });
+    } catch (err) {
+        console.error("Error getting post by ID:", err);
+        res.status(500).json({
+            message: "Failed to delete the post. Please try again later.",
+        });
+    }
+};
