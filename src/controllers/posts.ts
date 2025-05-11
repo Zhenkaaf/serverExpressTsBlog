@@ -131,14 +131,37 @@ export const getAllPosts = async (req: Request, res: Response) => {
     }
 };
 
+const delImgFromCloudinary = async (imgUrl: string) => {
+    const publicId = imgUrl.split("/").pop()?.split(".")[0]; // Извлекаем public_id из URL
+    if (!publicId) {
+        throw new Error("Invalid image URL: cannot extract public ID");
+    }
+    const fullPublicId = `avtovibe_images/${publicId}`;
+
+    try {
+        const result = await cloudinary.uploader.destroy(fullPublicId);
+
+        if (result.result === "ok") {
+            console.log("Image deleted successfully from Cloudinary");
+        } else {
+            console.error("Failed to delete image from Cloudinary:", result);
+            throw new Error("Failed to delete image from Cloudinary");
+        }
+    } catch (err) {
+        console.error("Error deleting image from Cloudinary:", err);
+        throw err;
+    }
+};
+
 export const delPostById = async (req: RequestCustom, res: Response) => {
     console.log("del");
     try {
         const post = await Post.findById(req.params.id);
-
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
+
+        await delImgFromCloudinary(post.imgUrl);
         await Post.findByIdAndDelete(req.params.id);
         await User.findByIdAndUpdate(req.userId, {
             $pull: { posts: req.params.id },
@@ -146,7 +169,7 @@ export const delPostById = async (req: RequestCustom, res: Response) => {
 
         res.status(200).json({ message: "Post was successfully deleted" });
     } catch (err) {
-        console.error("Error getting post by ID:", err);
+        console.error("Error deleting post by ID:", err);
         res.status(500).json({
             message: "Failed to delete the post. Please try again later.",
         });

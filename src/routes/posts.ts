@@ -10,6 +10,7 @@ import {
 import { upload, handleFileUploadError } from "../utils/multerConfig";
 const router = Router();
 
+//https://serverexpresstsblog.onrender.com
 //http://localhost:5000/api/post/create-post
 router.post(
     "/create-post",

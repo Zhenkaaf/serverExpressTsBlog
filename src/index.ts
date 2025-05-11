@@ -39,6 +39,7 @@ app.get("/", (req, res) => {
     res.send("API of AUTOVIBE is running...");
 });
 
+//https://serverexpresstsblog.onrender.com
 //http://localhost:5000
 app.use("/api/auth", authRoute);
 app.use("/api/post", postRoute);
