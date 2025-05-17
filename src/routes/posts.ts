@@ -6,6 +6,7 @@ import {
     getAllPosts,
     getMyPosts,
     getPostById,
+    updPostById,
 } from "../controllers/posts";
 import { upload, handleFileUploadError } from "../utils/multerConfig";
 const router = Router();
@@ -26,8 +27,15 @@ router.post(
 
 router.get("/my-posts", checkAuth, getMyPosts);
 router.get("/posts", getAllPosts);
-router.get("/:id", checkAuth, getPostById);
+router.get("/:id", getPostById);
 router.delete("/:id", checkAuth, delPostById);
+router.put(
+    "/:id",
+    checkAuth,
+    upload.single("image"),
+    handleFileUploadError,
+    updPostById
+);
 
 export default router;
 

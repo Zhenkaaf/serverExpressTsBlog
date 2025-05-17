@@ -47,6 +47,7 @@ export const createPost = async (req: RequestCustom, res: Response) => {
 
     try {
         const { title, text } = req.body;
+
         if (!title?.trim() || !text?.trim()) {
             return res
                 .status(400)
@@ -54,10 +55,6 @@ export const createPost = async (req: RequestCustom, res: Response) => {
         }
         // Загружаем изображение в Cloudinary
         const imgUrl = await uploadImage(req.file.buffer);
-        const user = await User.findById(req.userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
         const newPost = new Post({
             title,
             text,
@@ -65,21 +62,69 @@ export const createPost = async (req: RequestCustom, res: Response) => {
             authorId: req.userId,
         });
         await newPost.save();
-        //например, если пользователь был удалён между операциями
+        //если пользователь был удалён между операциями
         try {
-            await User.findByIdAndUpdate(req.userId, {
-                $push: { posts: newPost },
+            //Найди пользователя по userId и в массив posts добавь newPost._id.
+            const updatedUser = await User.findByIdAndUpdate(req.userId, {
+                $push: { posts: newPost._id },
             });
-        } catch (updateErr) {
-            console.error("User update failed:", updateErr);
+            if (!updatedUser) {
+                await Post.findByIdAndDelete(newPost._id);
+                return res
+                    .status(404)
+                    .json({ message: "User not found while linking post" });
+            }
+        } catch (err) {
+            console.error("Error updating user:", err);
             await Post.findByIdAndDelete(newPost._id); // удаляем пост, если привязка не сработала
-            throw updateErr; // пробрасываем ошибку дальше
+            return res
+                .status(500)
+                .json({ message: "Failed to link post to user" });
         }
 
         res.status(201).json(newPost);
     } catch (err) {
         console.error("Create post error:", err);
         res.status(500).json({ message: "Failed to create post" });
+    }
+};
+
+export const updPostById = async (req: RequestCustom, res: Response) => {
+    console.log("upd");
+    try {
+        const post = await Post.findById(req.params.id);
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+        const { title, text } = req.body;
+        if (!title?.trim() || !text?.trim()) {
+            return res
+                .status(400)
+                .json({ message: "Title and text are required" });
+        }
+
+        if (req.file) {
+            try {
+                await delImgFromCloudinary(post.imgUrl);
+                post.imgUrl = await uploadImage(req.file.buffer);
+            } catch (uploadErr) {
+                console.error("Image upload error:", uploadErr);
+                return res
+                    .status(500)
+                    .json({ message: "Failed to update image" });
+            }
+        }
+        post.title = title;
+        post.text = text;
+
+        await post.save();
+
+        res.status(200).json({ message: "Post was successfully updated" });
+    } catch (err) {
+        console.error("Error updating post by ID:", err);
+        res.status(500).json({
+            message: "Failed to update the post. Please try again later.",
+        });
     }
 };
 
