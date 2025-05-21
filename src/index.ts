@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import authRoute from "./routes/auth";
 import postRoute from "./routes/posts";
+import commentRoute from "./routes/comments";
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.get("/", (req, res) => {
 //http://localhost:5000
 app.use("/api/auth", authRoute);
 app.use("/api/post", postRoute);
+app.use("/api/comment", commentRoute);
 
 async function start() {
     try {
