@@ -1,5 +1,6 @@
 import Post from "../models/Post";
 import User from "../models/User";
+import Comment from "../models/Comment";
 import { Request, Response } from "express";
 import { RequestCustom } from "../types/express";
 import { v2 as cloudinary } from "cloudinary";
@@ -134,7 +135,18 @@ export const getPostById = async (req: RequestCustom, res: Response) => {
             req.params.id, // Поиск по ID поста
             { $inc: { views: 1 } }, // Увеличиваем количество просмотров на 1
             { new: true } // Возвращаем обновленный пост
-        );
+        ).populate({
+            path: "comments", // Загружаем комментарии
+            populate: {
+                path: "author", // Загружаем авторов комментариев
+                model: "User",
+                select: "email -_id", // только email, без _id и лишнего
+            },
+        }); // Добавляем подгрузку комментариев
+        /* Когда ты вызываешь .populate("comments") на запросе, Mongoose автоматически:
+Смотрит на поле comments в найденном посте — там лежат ID комментариев.
+Делает дополнительный запрос в коллекцию Comment и находит документы, у которых _id совпадает с этими ID.
+Заменяет в ответе поле comments из массива ID на массив полных объектов комментариев. */
         console.log(post);
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
@@ -211,6 +223,7 @@ export const delPostById = async (req: RequestCustom, res: Response) => {
         await User.findByIdAndUpdate(req.userId, {
             $pull: { posts: req.params.id },
         });
+        await Comment.deleteMany({ postId: req.params.id });
 
         res.status(200).json({ message: "Post was successfully deleted" });
     } catch (err) {
