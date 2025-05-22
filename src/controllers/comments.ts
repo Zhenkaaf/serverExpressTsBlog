@@ -83,7 +83,7 @@ export const createComment = async (req: RequestCustom, res: Response) => {
         const newComment = new Comment({
             comment,
             postId,
-            authorId: req.userId,
+            author: req.userId,
         });
         await newComment.save({ session });
 
