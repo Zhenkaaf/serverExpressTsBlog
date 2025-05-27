@@ -60,7 +60,7 @@ export const createPost = async (req: RequestCustom, res: Response) => {
             title,
             text,
             imgUrl,
-            authorId: req.userId,
+            author: req.userId,
         });
         await newPost.save();
         //если пользователь был удалён между операциями
@@ -135,14 +135,14 @@ export const getPostById = async (req: RequestCustom, res: Response) => {
             req.params.id, // Поиск по ID поста
             { $inc: { views: 1 } }, // Увеличиваем количество просмотров на 1
             { new: true } // Возвращаем обновленный пост
-        ).populate({
+        ).populate("author", "email -_id"); /* .populate({
             path: "comments", // Загружаем комментарии
             populate: {
                 path: "author", // Загружаем авторов комментариев
                 model: "User",
                 select: "email -_id", // только email, без _id и лишнего
             },
-        }); // Добавляем подгрузку комментариев
+        }); */ // Добавляем подгрузку комментариев
         /* Когда ты вызываешь .populate("comments") на запросе, Mongoose автоматически:
 Смотрит на поле comments в найденном посте — там лежат ID комментариев.
 Делает дополнительный запрос в коллекцию Comment и находит документы, у которых _id совпадает с этими ID.
@@ -162,7 +162,7 @@ export const getPostById = async (req: RequestCustom, res: Response) => {
 
 export const getMyPosts = async (req: RequestCustom, res: Response) => {
     try {
-        const posts = await Post.find({ authorId: req.userId }).sort({
+        const posts = await Post.find({ author: req.userId }).sort({
             createdAt: -1,
         });
         console.log("User posts:", posts);

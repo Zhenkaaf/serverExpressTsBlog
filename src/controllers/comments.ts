@@ -1,5 +1,5 @@
 import Post from "../models/Post";
-import { Response } from "express";
+import { Request, Response } from "express";
 import { RequestCustom } from "../types/express";
 import Comment from "../models/Comment";
 import mongoose from "mongoose";
@@ -57,8 +57,8 @@ export const createComment = async (req: RequestCustom, res: Response) => {
     const session = await mongoose.startSession();
 
     try {
-        const { comment, postId } = req.body;
-        if (!comment?.trim()) {
+        const { commentText, postId } = req.body;
+        if (!commentText?.trim()) {
             return res
                 .status(400)
                 .json({ message: "Comment text is required." });
@@ -81,7 +81,7 @@ export const createComment = async (req: RequestCustom, res: Response) => {
 
         // Создаем новый комментарий в рамках сессии
         const newComment = new Comment({
-            comment,
+            text: commentText,
             postId,
             author: req.userId,
         });
@@ -98,7 +98,7 @@ export const createComment = async (req: RequestCustom, res: Response) => {
         await session.commitTransaction();
         session.endSession();
 
-        res.status(201).json(newComment);
+        res.status(201).json({ message: "Comment successfully created" });
     } catch (err) {
         // При ошибке откатываем транзакцию
         await session.abortTransaction();
@@ -106,5 +106,24 @@ export const createComment = async (req: RequestCustom, res: Response) => {
 
         console.error("Error creating comment:", err);
         res.status(500).json({ message: "Failed to create comment" });
+    }
+};
+
+export const getComments = async (req: Request, res: Response) => {
+    try {
+        const comments = await Comment.find({ postId: req.params.id })
+            .sort({ createdAt: -1 })
+            .populate("author", "email -_id");
+
+        console.log("getComments********", comments);
+        if (!comments || comments.length === 0) {
+            return res.status(200).json([]);
+        }
+        res.status(200).json(comments);
+    } catch (err) {
+        console.error("Error getting comments", err);
+        res.status(500).json({
+            message: "Failed to get the comments. Please try again later.",
+        });
     }
 };
