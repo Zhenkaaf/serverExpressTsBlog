@@ -18,7 +18,7 @@ const PostSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-        authorId: {
+        author: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
         },
@@ -28,3 +28,8 @@ const PostSchema = new mongoose.Schema(
 );
 
 export default mongoose.model("Post", PostSchema);
+
+//PostSchema поля author и comments — это ссылки на другие документы в базе данных, то есть они создают связи между коллекциями.
+/* type: mongoose.Schema.Types.ObjectId — это означает, что в поле author хранится ObjectId (уникальный идентификатор) документа из другой коллекции.
+
+ref: "User" — указывает, на какую коллекцию ссылается это поле. В данном случае — на коллекцию users. */
