@@ -175,9 +175,16 @@ export const getMyPosts = async (req: RequestCustom, res: Response) => {
     }
 };
 
-export const getAllPosts = async (req: Request, res: Response) => {
+export const getPosts = async (req: Request, res: Response) => {
     try {
-        const posts = await Post.find().sort({ createdAt: -1 });
+        const pageParam = req.query.page;
+        const page = typeof pageParam === "string" ? parseInt(pageParam) : 1;
+        const currentPage = isNaN(page) ? 1 : page;
+        const skip = (currentPage - 1) * 9;
+        const posts = await Post.find()
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(9);
         const popularPosts = await Post.find().sort({ views: -1 }).limit(4);
         res.status(200).json({ posts, popularPosts });
     } catch (err) {

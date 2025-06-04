@@ -3,9 +3,9 @@ import { checkAuth } from "../utils/checkAuth";
 import {
     createPost,
     delPostById,
-    getAllPosts,
     getMyPosts,
     getPostById,
+    getPosts,
     updPostById,
 } from "../controllers/posts";
 import { upload, handleFileUploadError } from "../utils/multerConfig";
@@ -26,7 +26,7 @@ router.post(
 Остальные поля (title, text) будут лежать в req.body. */
 
 router.get("/my-posts", checkAuth, getMyPosts);
-router.get("/posts", getAllPosts);
+router.get("/posts", getPosts);
 router.get("/:id", getPostById);
 router.delete("/:id", checkAuth, delPostById);
 router.put(
