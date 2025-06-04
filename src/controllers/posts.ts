@@ -185,8 +185,13 @@ export const getPosts = async (req: Request, res: Response) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(9);
+        const totalPosts = await Post.countDocuments();
         const popularPosts = await Post.find().sort({ views: -1 }).limit(4);
-        res.status(200).json({ posts, popularPosts });
+        res.status(200).json({
+            posts,
+            popularPosts,
+            totalPages: Math.ceil(totalPosts / 9),
+        });
     } catch (err) {
         console.error("Error getting all posts", err);
         res.status(500).json({
