@@ -26,7 +26,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
                 id: newUser._id,
             },
             process.env.JWT_SECRET as string,
-            { expiresIn: "1h" }
+            { expiresIn: "1d" }
         );
         await newUser.save();
 
@@ -66,7 +66,7 @@ export const login = async (req: Request, res: Response) => {
                 id: user._id,
             },
             process.env.JWT_SECRET as string,
-            { expiresIn: "1h" }
+            { expiresIn: "1d" }
         );
         const { password: passFromDB, ...userInfo } = user.toObject();
         res.json({
