@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
+import sgMail from "../services/sendgrid";
 import { JwtPayload } from "jsonwebtoken";
 
 interface IResetTokenPayload extends JwtPayload {
@@ -132,16 +133,59 @@ export const resetPassword = async (req: Request, res: Response) => {
         user.resetPasswordExpires = resetCodeExpires;
         await user.save();
         // Создание transporter
-        const transporter = nodemailer.createTransport({
+        /* const transporter = nodemailer.createTransport({
             host: "smtp.sendgrid.net",
             port: 587,
             auth: {
                 user: "apikey", // стандарт для SendGrid SMTP
                 pass: process.env.SENDGRID_API_KEY, // ключ SendGrid
             },
-        });
+        }); */
+        /* const transporter = nodemailer.createTransport({
+            host: "smtp.sendgrid.net",
+            port: 465,
+            secure: true,
+            auth: {
+                user: "apikey",
+                pass: process.env.SENDGRID_API_KEY,
+            },
+            connectionTimeout: 10_000,
+            greetingTimeout: 10_000,
+            socketTimeout: 10_000,
+        }); */
 
         const resetUrl = `${process.env.RESET_PASSWORD_URL}?email=${encodeURIComponent(email)}`;
+
+        try {
+            await sgMail.send({
+                to: email,
+                from: {
+                    email: process.env.FROM_EMAIL!,
+                    name: process.env.FROM_NAME!,
+                },
+                subject: "Password Reset Code",
+                html: `
+            <div>
+                <p>Your password reset code is: <b>${resetCode}</b></p>
+                <p>It is valid for 3 minutes.</p>
+                <p>
+                    <a href="${resetUrl}" target="_blank">AUTOVIBE</a>
+                </p>
+                <hr />
+                <p style="font-size: 12px; color: #999;">
+                    &copy; ${new Date().getFullYear()} Autovibe
+                </p>
+            </div>
+        `,
+            });
+
+            console.log("EMAIL SENT VIA SENDGRID API");
+        } catch (error) {
+            console.error("SENDGRID ERROR:", error);
+            return res.status(500).json({
+                message: "Failed to send reset email",
+            });
+        }
 
         // Отправка письма
         /* await transporter.sendMail({
@@ -159,7 +203,7 @@ export const resetPassword = async (req: Request, res: Response) => {
             `,
         }); */
 
-        try {
+        /*   try {
             const info = await transporter.sendMail({
                 from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
                 to: email,
@@ -180,7 +224,7 @@ export const resetPassword = async (req: Request, res: Response) => {
             return res.status(500).json({
                 message: "Failed to send reset email",
             });
-        }
+        } */
 
         return res
             .status(200)
