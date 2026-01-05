@@ -141,10 +141,17 @@ export const resetPassword = async (req: Request, res: Response) => {
             },
         });
         console.log(
-            "************************55",
+            "*****************RESET_PASSWORD_URL--",
             process.env.RESET_PASSWORD_URL
         );
+        console.log(
+            "*****************SENDGRID_API_KEY--",
+            process.env.SENDGRID_API_KEY
+        );
+        console.log("*****************FROM_NAME--", process.env.FROM_NAME);
+        console.log("*****************FROM_EMAIL--", process.env.FROM_EMAIL);
         const resetUrl = `${process.env.RESET_PASSWORD_URL}?email=${encodeURIComponent(email)}`;
+        console.log("resetUrl---", resetUrl);
 
         // Отправка письма
         await transporter.sendMail({
@@ -161,7 +168,7 @@ export const resetPassword = async (req: Request, res: Response) => {
             </div>
             `,
         });
-
+        console.log("PISMO OTPRAVLENO");
         return res
             .status(200)
             .json({ message: `Password reset code has been sent to ${email}` });
