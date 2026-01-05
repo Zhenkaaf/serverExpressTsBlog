@@ -12,27 +12,33 @@ const checkAuth = (req, res, next) => {
         res.status(500).json({ message: "JWT secret is not set" });
         return;
     }
-    console.log(token);
+    console.log("token*****", token);
     if (token) {
         try {
             const decodedJWT = jsonwebtoken_1.default.verify(token, JWT_SECRET);
             if (!decodedJWT.id) {
-                res.status(403).json({ message: "Invalid token" });
+                console.log("Invalid token");
+                res.status(403).json({
+                    message: "Invalid token, please log in again.",
+                });
                 return;
             }
+            //checkAuth добавляет userId в объект запроса (req)
             req.userId = decodedJWT.id;
             next();
         }
         catch (err) {
+            console.log("Invalid or expired token. Access denied");
             res.status(403).json({
-                message: "You don't have access",
+                message: "Invalid or expired token. Access denied. Please log in again.",
             });
             return;
         }
     }
     else {
+        console.log("You don't have access, token is missing");
         res.status(403).json({
-            message: "You don't have access, token is missing",
+            message: "Token is missing. Please log in to access this resource.",
         });
         return;
     }

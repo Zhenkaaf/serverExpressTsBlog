@@ -140,6 +140,10 @@ export const resetPassword = async (req: Request, res: Response) => {
                 pass: process.env.SENDGRID_API_KEY, // ключ SendGrid
             },
         });
+        console.log(
+            "************************55",
+            process.env.RESET_PASSWORD_URL
+        );
         const resetUrl = `${process.env.RESET_PASSWORD_URL}?email=${encodeURIComponent(email)}`;
 
         // Отправка письма
