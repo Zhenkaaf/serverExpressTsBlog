@@ -15,6 +15,9 @@ const UserSchema = new mongoose.Schema(
         //В этом поле posts мы храним массив ObjectId из другой коллекции — Post.
         //ref используется в Mongoose, чтобы связывать одну коллекцию с другой
         //с помощью ref: "Post" мы говорим Mongoose, к каким документам относятся эти ObjectId
+        resetPasswordCode: { type: String }, // код сброса
+        resetPasswordExpires: { type: Date }, // время истечения
+        isResetCodeVerified: { type: Boolean },
     },
     { timestamps: true }
 );
