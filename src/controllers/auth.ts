@@ -140,21 +140,11 @@ export const resetPassword = async (req: Request, res: Response) => {
                 pass: process.env.SENDGRID_API_KEY, // ключ SendGrid
             },
         });
-        console.log(
-            "*****************RESET_PASSWORD_URL--",
-            process.env.RESET_PASSWORD_URL
-        );
-        console.log(
-            "*****************SENDGRID_API_KEY--",
-            process.env.SENDGRID_API_KEY
-        );
-        console.log("*****************FROM_NAME--", process.env.FROM_NAME);
-        console.log("*****************FROM_EMAIL--", process.env.FROM_EMAIL);
+
         const resetUrl = `${process.env.RESET_PASSWORD_URL}?email=${encodeURIComponent(email)}`;
-        console.log("resetUrl---", resetUrl);
 
         // Отправка письма
-        await transporter.sendMail({
+        /* await transporter.sendMail({
             from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
             to: email,
             subject: "Password Reset Code",
@@ -167,8 +157,31 @@ export const resetPassword = async (req: Request, res: Response) => {
                 <p style="font-size: 12px; color: #999;">&copy; ${new Date().getFullYear()} Autovibe. All rights reserved.</p>
             </div>
             `,
-        });
-        console.log("PISMO OTPRAVLENO");
+        }); */
+
+        try {
+            const info = await transporter.sendMail({
+                from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
+                to: email,
+                subject: "Password Reset Code",
+                html: `<div>
+                <p>Your password reset code is: <b>${resetCode}</b> It is valid for 3 minutes.</p>
+                <p><a href="${resetUrl}" target="_blank">AUTOVIBE</a></p>
+                <hr />
+                <p>If you didn't request a password reset, please ignore this email.</p>
+                <p style="font-size: 12px; color: #999;">&copy; ${new Date().getFullYear()} Autovibe. All rights reserved.</p>
+            </div>`,
+            });
+
+            console.log("PISMO OTPRAVLENO");
+            console.log("SendMail info:", info);
+        } catch (mailError) {
+            console.error("SENDMAIL ERROR:", mailError);
+            return res.status(500).json({
+                message: "Failed to send reset email",
+            });
+        }
+
         return res
             .status(200)
             .json({ message: `Password reset code has been sent to ${email}` });
