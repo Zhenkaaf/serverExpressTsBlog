@@ -9,6 +9,7 @@ import cors from "cors";
 import authRoute from "./routes/auth";
 import postRoute from "./routes/posts";
 import commentRoute from "./routes/comments";
+import resetPasswordRoute from "./routes/resetPassword";
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoute);
 app.use("/api/post", postRoute);
 app.use("/api/comment", commentRoute);
+app.use("/api/reset-password", resetPasswordRoute);
 
 async function start() {
     try {
@@ -60,5 +62,3 @@ async function start() {
     }
 }
 start();
-
-//mongodb+srv://zhenkaaf:4g15vedJeJml2yiA@cluster0.dfn7h.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0 */
