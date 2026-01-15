@@ -11,7 +11,6 @@ interface IResetTokenPayload extends JwtPayload {
 }
 
 export const resetPassword = async (req: Request, res: Response) => {
-    console.log("resett password start*****");
     const email = req.body.email;
     if (!email) {
         return res
@@ -29,8 +28,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         // Генерация кода
         const resetCode = crypto.randomInt(100000, 999999).toString(); // 6-значный код
         const resetCodeExpires = new Date(Date.now() + 3 * 60 * 1000); // метку +3мин. от сейчас
-        // Сохраняем токен и время в документе пользователя
-        console.log("resett password resetCode*****", resetCode);
+        // Сохраняем токен и время в документе пользовател
         user.resetPasswordCode = resetCode;
         user.resetPasswordExpires = resetCodeExpires;
         await user.save();
@@ -65,11 +63,9 @@ export const resetPassword = async (req: Request, res: Response) => {
             });
         }
 
-        return res
-            .status(200)
-            .json({
-                message: `Password reset code has been sent to ${email}, to ${resetUrl}`,
-            });
+        return res.status(200).json({
+            message: `Password reset code has been sent to ${email}, to ${resetUrl}`,
+        });
     } catch (err) {
         console.error("Reset password error:", err);
         res.status(500).json({ message: "Server reset password error" });

@@ -147,7 +147,7 @@ export const getPostById = async (req: RequestCustom, res: Response) => {
 Смотрит на поле comments в найденном посте — там лежат ID комментариев.
 Делает дополнительный запрос в коллекцию Comment и находит документы, у которых _id совпадает с этими ID.
 Заменяет в ответе поле comments из массива ID на массив полных объектов комментариев. */
-        console.log(post);
+
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
