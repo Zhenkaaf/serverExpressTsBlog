@@ -64,7 +64,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         }
 
         return res.status(200).json({
-            message: `Password reset code has been sent to ${email}, to ${resetUrl}`,
+            message: `Password reset code has been sent to ${email}`,
         });
     } catch (err) {
         console.error("Reset password error:", err);
