@@ -56,8 +56,8 @@ export const resetPassword = async (req: Request, res: Response) => {
             </div>
         `,
             });
-            /* console.log("SendGrid resetCode:", resetCode);
-            console.log("SendGrid response:", response); */
+            console.log("SendGrid resetCode:", resetCode);
+            console.log("SendGrid response:", response);
         } catch (error) {
             console.error("SENDGRID ERROR:", error);
             return res.status(500).json({
