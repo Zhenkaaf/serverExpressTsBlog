@@ -28,7 +28,11 @@ export const resetPassword = async (req: Request, res: Response) => {
         // Генерация кода
         const resetCode = crypto.randomInt(100000, 999999).toString(); // 6-значный код
         const resetCodeExpires = new Date(Date.now() + 3 * 60 * 1000); // метку +3мин. от сейчас
-
+        // Сохраняем токен и время в документе пользовател
+        user.resetPasswordCode = resetCode;
+        user.resetPasswordExpires = resetCodeExpires;
+        await user.save();
+        console.log("SendGrid resetCode:", resetCode);
         const resetUrl = `${process.env.RESET_PASSWORD_URL}?email=${encodeURIComponent(email)}`;
         try {
             const response = await sgMail.send({
@@ -52,6 +56,7 @@ export const resetPassword = async (req: Request, res: Response) => {
             </div>
         `,
             });
+            console.log("SendGrid resetCode:", resetCode);
             console.log("SendGrid response:", response);
         } catch (error) {
             console.error("SENDGRID ERROR:", error);
@@ -59,11 +64,6 @@ export const resetPassword = async (req: Request, res: Response) => {
                 message: "Failed to send reset email",
             });
         }
-
-        // Сохраняем токен и время в документе пользовател
-        user.resetPasswordCode = resetCode;
-        user.resetPasswordExpires = resetCodeExpires;
-        await user.save();
 
         return res.status(200).json({
             message: `Password reset code has been sent to ${email}`,
