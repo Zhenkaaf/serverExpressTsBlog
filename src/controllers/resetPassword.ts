@@ -37,7 +37,30 @@ export const resetPassword = async (req: Request, res: Response) => {
 
         const resetUrl = `${process.env.RESET_PASSWORD_URL}?email=${encodeURIComponent(email)}`;
 
-        try {
+        transporter
+            .sendMail({
+                from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
+                to: email,
+                subject: "Password Reset Code",
+                html: `
+    <div>
+      <p>Your password reset code is: <b>${resetCode}</b></p>
+      <p>It is valid for 3 minutes.</p>
+      <p><a href="${resetUrl}">AUTOVIBE</a></p>
+      <hr/>
+      <p style="font-size: 12px; color: #999;">&copy; ${new Date().getFullYear()} Autovibe</p>
+    </div>
+  `,
+            })
+            .then((response) => {
+                console.log("Brevo resetCode:", resetCode);
+                console.log("Brevo response:", response);
+            })
+            .catch((err) => {
+                console.error("Brevo sendMail error:", err);
+            });
+
+        /*   try {
             const response = await transporter.sendMail({
                 from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
                 to: email,
@@ -55,9 +78,9 @@ export const resetPassword = async (req: Request, res: Response) => {
                 </p>
             </div>
                 `,
-            });
+            }); */
 
-            /* const response = await sgMail.send({
+        /* const response = await sgMail.send({
                 to: email,
                 from: {
                     email: process.env.FROM_EMAIL!,
@@ -78,14 +101,15 @@ export const resetPassword = async (req: Request, res: Response) => {
             </div>
         `,
             });*/
-            console.log("Brevo resetCode:", resetCode);
+        /*   console.log("Brevo resetCode:", resetCode);
             console.log("Brevo response:", response);
         } catch (error) {
             console.error("Brevo ERROR:", error);
             return res.status(500).json({
                 message: "Failed to send reset email",
             });
-        }
+        } 
+            */
 
         return res.status(200).json({
             message: `Password reset code has been sent to ${email}`,
