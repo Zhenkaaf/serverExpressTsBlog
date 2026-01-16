@@ -5,6 +5,8 @@ import jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
 import sgMail from "../services/sendgrid";
+import nodemailer from "nodemailer";
+import { transporter } from "../services/mailer";
 
 interface IResetTokenPayload extends JwtPayload {
     userId: string;
@@ -34,8 +36,28 @@ export const resetPassword = async (req: Request, res: Response) => {
         await user.save();
 
         const resetUrl = `${process.env.RESET_PASSWORD_URL}?email=${encodeURIComponent(email)}`;
+
         try {
-            const response = await sgMail.send({
+            const response = await transporter.sendMail({
+                from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
+                to: email,
+                subject: "Password Reset Code",
+                html: `
+            <div>
+                <p>Your password reset code is: <b>${resetCode}</b></p>
+                <p>It is valid for 3 minutes.</p>
+                <p>
+                    <a href="${resetUrl}">AUTOVIBE</a>
+                </p>
+                <hr />
+                <p style="font-size: 12px; color: #999;">
+                    &copy; ${new Date().getFullYear()} Autovibe
+                </p>
+            </div>
+                `,
+            });
+
+            /* const response = await sgMail.send({
                 to: email,
                 from: {
                     email: process.env.FROM_EMAIL!,
@@ -55,11 +77,11 @@ export const resetPassword = async (req: Request, res: Response) => {
                 </p>
             </div>
         `,
-            });
-            console.log("SendGrid resetCode:", resetCode);
-            console.log("SendGrid response:", response);
+            });*/
+            console.log("Brevo resetCode:", resetCode);
+            console.log("Brevo response:", response);
         } catch (error) {
-            console.error("SENDGRID ERROR:", error);
+            console.error("Brevo ERROR:", error);
             return res.status(500).json({
                 message: "Failed to send reset email",
             });
