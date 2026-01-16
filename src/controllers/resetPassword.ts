@@ -32,7 +32,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         user.resetPasswordCode = resetCode;
         user.resetPasswordExpires = resetCodeExpires;
         await user.save();
-        console.log("SendGrid resetCode:", resetCode);
+
         const resetUrl = `${process.env.RESET_PASSWORD_URL}?email=${encodeURIComponent(email)}`;
         try {
             const response = await sgMail.send({
@@ -56,8 +56,8 @@ export const resetPassword = async (req: Request, res: Response) => {
             </div>
         `,
             });
-            console.log("SendGrid resetCode:", resetCode);
-            console.log("SendGrid response:", response);
+            /* console.log("SendGrid resetCode:", resetCode);
+            console.log("SendGrid response:", response); */
         } catch (error) {
             console.error("SENDGRID ERROR:", error);
             return res.status(500).json({
