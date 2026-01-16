@@ -4,10 +4,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
-import sgMail from "../services/sendgrid";
-import nodemailer from "nodemailer";
-import { transporter } from "../services/mailer";
-import SibApiV3Sdk from "@sendinblue/client";
 import { TransactionalEmailsApi, SendSmtpEmail } from "@getbrevo/brevo";
 
 interface IResetTokenPayload extends JwtPayload {
