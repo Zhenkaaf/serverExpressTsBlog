@@ -4,31 +4,12 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
-import { TransactionalEmailsApi, SendSmtpEmail } from "@getbrevo/brevo";
+import { validateBrevoEnv } from "../config/brevo";
+import { sendResetEmail } from "../utils/sendResetEmail";
 
 interface IResetTokenPayload extends JwtPayload {
     userId: string;
 }
-
-const emailApi = new TransactionalEmailsApi();
-(emailApi as any).authentications.apiKey.apiKey = process.env.BREVO_API_KEY!;
-
-const message = new SendSmtpEmail();
-message.sender = { name: "AutoVibe", email: "zhenkaaf@gmail.com" };
-message.to = [{ email: "recipient@example.com" }];
-message.subject = "Привет из Brevo";
-message.htmlContent = "<html><body><p>Это тестовое письмо.</p></body></html>";
-
-async function sendEmail() {
-    try {
-        const response = await emailApi.sendTransacEmail(message);
-        console.log("Письмо отправлено:", response.body);
-    } catch (error) {
-        console.error("Ошибка отправки:", error);
-    }
-}
-
-sendEmail();
 
 export const resetPassword = async (req: Request, res: Response) => {
     const email = req.body.email;
@@ -44,101 +25,26 @@ export const resetPassword = async (req: Request, res: Response) => {
                 .status(404)
                 .json({ message: "User with such email not found" });
         }
-
+        const { brevoApiKey, senderName, senderEmail, resetPasswordURL } =
+            validateBrevoEnv();
         // Генерация кода
         const resetCode = crypto.randomInt(100000, 999999).toString(); // 6-значный код
         const resetCodeExpires = new Date(Date.now() + 3 * 60 * 1000); // метку +3мин. от сейчас
+        const resetUrl = `${resetPasswordURL}?email=${encodeURIComponent(email)}`;
         // Сохраняем токен и время в документе пользовател
         user.resetPasswordCode = resetCode;
         user.resetPasswordExpires = resetCodeExpires;
         await user.save();
-        const resetUrl = `${process.env.RESET_PASSWORD_URL}?email=${encodeURIComponent(email)}`;
+
         console.log("resetCode", resetCode);
-        // Настройка Brevo
-        const emailApi = new TransactionalEmailsApi();
-        (emailApi as any).authentications.apiKey.apiKey =
-            process.env.BREVO_API_KEY!;
-        console.log("Настройка BrevoOK");
-        // Создание письма
-        const message = new SendSmtpEmail();
-        message.sender = { name: "AutoVibe", email: "zhenkaaf@gmail.com" };
-        message.to = [{ email }]; // отправка пользователю
-        message.subject = "Сброс пароля AutoVibe";
-        message.htmlContent = `
-            <div>
-                <p>Your password reset code is: <b>${resetCode}</b></p>
-                <p>It is valid for 3 minutes.</p>
-                <p>
-                    <a href="${resetUrl}" target="_blank">Reset Password</a>
-                </p>
-                <hr />
-                <p style="font-size: 12px; color: #999;">
-                    &copy; ${new Date().getFullYear()} AutoVibe
-                </p>
-            </div>
-        `;
-        console.log("Создание письмаOK");
-        // Отправка письма и ожидание результата
-        try {
-            const response = await emailApi.sendTransacEmail(message);
-            console.log("Письмо отправлено:", response.body);
-        } catch (error) {
-            console.error("Ошибка отправки письма:", error);
-            return res
-                .status(500)
-                .json({ message: "Ошибка при отправке письма" });
-        }
-
-        /*   try {
-            const response = await transporter.sendMail({
-                from: `"${process.env.FROM_NAME}" <${process.env.FROM_EMAIL}>`,
-                to: email,
-                subject: "Password Reset Code",
-                html: `
-            <div>
-                <p>Your password reset code is: <b>${resetCode}</b></p>
-                <p>It is valid for 3 minutes.</p>
-                <p>
-                    <a href="${resetUrl}">AUTOVIBE</a>
-                </p>
-                <hr />
-                <p style="font-size: 12px; color: #999;">
-                    &copy; ${new Date().getFullYear()} Autovibe
-                </p>
-            </div>
-                `,
-            }); */
-
-        /* const response = await sgMail.send({
-                to: email,
-                from: {
-                    email: process.env.FROM_EMAIL!,
-                    name: process.env.FROM_NAME!,
-                },
-                subject: "Password Reset Code",
-                html: `
-            <div>
-                <p>Your password reset code is: <b>${resetCode}</b></p>
-                <p>It is valid for 3 minutes.</p>
-                <p>
-                    <a href="${resetUrl}" target="_blank">AUTOVIBE</a>
-                </p>
-                <hr />
-                <p style="font-size: 12px; color: #999;">
-                    &copy; ${new Date().getFullYear()} Autovibe
-                </p>
-            </div>
-        `,
-            });*/
-        /*   console.log("Brevo resetCode:", resetCode);
-            console.log("Brevo response:", response);
-        } catch (error) {
-            console.error("Brevo ERROR:", error);
-            return res.status(500).json({
-                message: "Failed to send reset email",
-            });
-        } 
-            */
+        await sendResetEmail({
+            toEmail: email,
+            resetCode,
+            resetUrl,
+            brevoApiKey,
+            senderName,
+            senderEmail,
+        });
 
         return res.status(200).json({
             message: `Password reset code has been sent to ${email}`,
